@@ -1,0 +1,464 @@
+.map-container {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  margin: 40px auto;
+  max-width: 1200px;
+  border: 1px solid #e5e7eb;
+}
+
+.map-title {
+  color: #1e40af;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  text-align: center;
+  position: relative;
+  padding-bottom: 15px;
+}
+
+.map-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+  border-radius: 2px;
+}
+
+.map-subtitle {
+  color: #6b7280;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* الخريطة المبسطة */
+.simple-map-wrapper {
+  position: relative;
+  min-height: 500px;
+  margin-bottom: 40px;
+}
+
+.morocco-outline {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 15px;
+  border: 2px solid #0ea5e9;
+  overflow: hidden;
+  margin-bottom: 30px;
+}
+
+.map-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 20%, rgba(14, 165, 233, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(14, 165, 233, 0.1) 0%, transparent 50%);
+}
+
+.map-region {
+  position: absolute;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  z-index: 10;
+}
+
+.map-region:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+  z-index: 20;
+}
+
+.region-dot {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.map-region:hover .region-dot {
+  width: 45px;
+  height: 45px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.region-name {
+  background: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f2937;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 5px;
+  border: 1px solid #e5e7eb;
+}
+
+.problem-count {
+  background: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: #1f2937;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  margin-top: -5px;
+  border: 2px solid white;
+}
+
+/* تفاصيل المنطقة */
+.region-details {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  margin: 30px 0;
+  border: 2px solid #e5e7eb;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.region-details h3 {
+  color: #1e40af;
+  margin-bottom: 25px;
+  font-size: 24px;
+  font-weight: 800;
+  text-align: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.detail-item {
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-label {
+  display: block;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.detail-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.risk-high {
+  color: #ef4444;
+  background: #fef2f2;
+  padding: 6px 15px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.risk-medium {
+  color: #f59e0b;
+  background: #fffbeb;
+  padding: 6px 15px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.risk-low {
+  color: #10b981;
+  background: #ecfdf5;
+  padding: 6px 15px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.phones-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.phone-item {
+  padding: 10px 15px;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-family: monospace;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.phone-item:hover {
+  background: #f0f9ff;
+  border-color: #0ea5e9;
+  transform: translateX(5px);
+}
+
+.no-data {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.region-description {
+  color: #4b5563;
+  line-height: 1.7;
+  font-size: 15px;
+  margin-top: 10px;
+  padding: 15px;
+  background: white;
+  border-radius: 10px;
+  border-left: 4px solid #3b82f6;
+}
+
+.close-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.close-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3);
+}
+
+/* مفتاح الخريطة */
+.map-legend {
+  background: #f9fafb;
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid #e5e7eb;
+  margin-top: 30px;
+}
+
+.map-legend h4 {
+  color: #1f2937;
+  margin-bottom: 20px;
+  font-size: 18px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.legend-items {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.legend-color {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.legend-color.high {
+  background: #ef4444;
+}
+
+.legend-color.medium {
+  background: #f59e0b;
+}
+
+.legend-color.low {
+  background: #10b981;
+}
+
+/* إحصائيات الخريطة */
+.map-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.map-stats .stat-card {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.map-stats .stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.map-stats .stat-icon {
+  font-size: 36px;
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-stats .stat-info h3 {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 5px;
+}
+
+.map-stats .stat-info p {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* تحسينات التجاوب */
+@media (max-width: 992px) {
+  .map-container {
+    margin: 30px 20px;
+    padding: 25px;
+  }
+  
+  .morocco-outline {
+    height: 450px;
+  }
+  
+  .legend-items {
+    gap: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .map-container {
+    padding: 20px;
+    margin: 20px 15px;
+  }
+  
+  .map-title {
+    font-size: 24px;
+  }
+  
+  .morocco-outline {
+    height: 400px;
+  }
+  
+  .legend-items {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .map-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .map-container {
+    padding: 15px;
+    margin: 15px 10px;
+  }
+  
+  .map-title {
+    font-size: 20px;
+  }
+  
+  .map-subtitle {
+    font-size: 14px;
+  }
+  
+  .morocco-outline {
+    height: 350px;
+  }
+  
+  .region-name {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+  
+  .map-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .map-stats .stat-card {
+    padding: 20px;
+  }
+  
+  .legend-item {
+    font-size: 14px;
+  }
+}

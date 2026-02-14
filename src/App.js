@@ -11,7 +11,7 @@ import {
 } from 'react-router-dom';
 
 // API configuration
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'https://backend-master-4sqohg.laravel.cloud';
 
 // Cloudinary Configuration
 const CLOUDINARY_CLOUD_NAME = 'dij7fqfot';

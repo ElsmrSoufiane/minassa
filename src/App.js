@@ -1,4 +1,4 @@
-// App.js - Arabic version with French dates only
+// App.js - Complete updated frontend
 import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import {
   BrowserRouter as Router,
@@ -12,10 +12,6 @@ import {
 
 // API configuration
 const API_BASE_URL = 'https://backend-master-4sqohg.laravel.cloud';
-
-// Cloudinary Configuration
-const CLOUDINARY_CLOUD_NAME = 'dij7fqfot';
-const CLOUDINARY_UPLOAD_PRESET = 'soufiane';
 
 // French date formatter (kept in French)
 const formatDateFrench = (dateString) => {
@@ -71,31 +67,6 @@ const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('خطأ في طلب API:', error);
       throw error;
-    }
-  }, []);
-
-  const uploadImage = useCallback(async (file) => {
-    if (!file) return null;
-
-    try {
-      const data = new FormData();
-      data.append('file', file);
-      data.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-      data.append('cloud_name', CLOUDINARY_CLOUD_NAME);
-
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: data,
-        }
-      );
-
-      const result = await response.json();
-      return result.secure_url;
-    } catch (error) {
-      console.error('فشل التحميل:', error);
-      return null;
     }
   }, []);
 
@@ -279,7 +250,6 @@ const AuthProvider = ({ children }) => {
         updateCustomer,
         deleteCustomer,
         sendVerificationEmail,
-        uploadImage,
         checkVerification: (email) => apiRequest('/check-verification', {
           method: 'POST',
           body: { email }
@@ -995,24 +965,24 @@ const Register = () => {
     reader.readAsDataURL(file);
   }, []);
 
+  // Upload image to backend
   const uploadImage = useCallback(async (file) => {
     if (!file) return null;
 
     setUploading(true);
     
     try {
-      const data = new FormData();
-      data.append('file', file);
-      data.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-      data.append('cloud_name', CLOUDINARY_CLOUD_NAME);
+      const formData = new FormData();
+      formData.append('file', file);
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: data,
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/upload-profile-image`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
 
       const result = await response.json();
       return result.secure_url;
@@ -1662,7 +1632,6 @@ const PhoneDetails = () => {
   const [selectedEvidenceFile, setSelectedEvidenceFile] = useState(null);
   const [evidenceImagePreview, setEvidenceImagePreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [uploadingEvidence, setUploadingEvidence] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
   const [editing, setEditing] = useState(false);
@@ -1770,32 +1739,33 @@ const PhoneDetails = () => {
     
     setSubmitting(true);
     
-    let evidenceImageUrl = '';
+    // Create FormData for the request
+    const formPayload = new FormData();
+    formPayload.append('number', decodedPhoneNumber);
+    formPayload.append('nom', user.name);
+    formPayload.append('description', newComment);
+    formPayload.append('user_id', user.id);
     
     if (selectedEvidenceFile) {
-      setUploadingEvidence(true);
-      const uploadedUrl = await api.uploadImage(selectedEvidenceFile);
-      if (uploadedUrl) {
-        evidenceImageUrl = uploadedUrl;
-      } else {
-        alert('فشل تحميل صورة الإثبات. يمكنك الإضافة بدون صورة.');
-        setSubmitting(false);
-        setUploadingEvidence(false);
-        return;
-      }
-      setUploadingEvidence(false);
+      formPayload.append('evidence_file', selectedEvidenceFile);
     }
     
     try {
-      const payload = {
-        number: decodedPhoneNumber,
-        nom: user.name,
-        description: newComment,
-        evidence_image: evidenceImageUrl,
-        user_id: user.id
-      };
+      // Direct fetch to customers endpoint with FormData
+      const response = await fetch(`${API_BASE_URL}/customers`, {
+        method: 'POST',
+        body: formPayload,
+        headers: {
+          'Accept': 'application/json',
+          // Don't set Content-Type - browser will set it with boundary for FormData
+        },
+      });
+
+      const data = await response.json();
       
-      await api.addCustomer(payload);
+      if (!response.ok) {
+        throw new Error(data.message || 'فشل إضافة البلاغ');
+      }
       
       setNewComment('');
       setSelectedEvidenceFile(null);
@@ -1809,7 +1779,7 @@ const PhoneDetails = () => {
     } finally {
       setSubmitting(false);
     }
-  }, [user, newComment, selectedEvidenceFile, api.uploadImage, api.addCustomer, decodedPhoneNumber, fetchComments, navigate]);
+  }, [user, newComment, selectedEvidenceFile, decodedPhoneNumber, fetchComments, navigate]);
 
   const handleEditClick = useCallback((comment) => {
     setEditingId(comment.id);
@@ -2081,17 +2051,16 @@ const PhoneDetails = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <button 
                   type="submit" 
-                  disabled={submitting || uploadingEvidence}
+                  disabled={submitting}
                   className="view-btn"
                   style={{ 
-                    background: submitting || uploadingEvidence ? '#94a3b8' : 'linear-gradient(135deg, #4361ee, #7209b7)',
-                    cursor: submitting || uploadingEvidence ? 'not-allowed' : 'pointer',
+                    background: submitting ? '#94a3b8' : 'linear-gradient(135deg, #4361ee, #7209b7)',
+                    cursor: submitting ? 'not-allowed' : 'pointer',
                     padding: '0.75rem 2rem',
                     color: 'white'
                   }}
                 >
-                  {submitting ? 'جاري الإضافة...' : 
-                   uploadingEvidence ? 'جاري تحميل الصورة...' : 'إضافة البلاغ'}
+                  {submitting ? 'جاري الإضافة...' : 'إضافة البلاغ'}
                 </button>
                 {user && (
                   <div style={{ color: theme === 'light' ? '#64748b' : '#cbd5e1' }}>
@@ -2335,11 +2304,10 @@ const AddComment = () => {
   });
   const [selectedEvidenceFile, setSelectedEvidenceFile] = useState(null);
   const [evidenceImagePreview, setEvidenceImagePreview] = useState('');
-  const [uploadingEvidence, setUploadingEvidence] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const { user, api } = useAuth();
+  const { user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
 
@@ -2413,32 +2381,33 @@ const AddComment = () => {
     setSuccess('');
     setLoading(true);
 
-    let evidenceImageUrl = formData.evidence_image;
+    // Create FormData for the request
+    const formPayload = new FormData();
+    formPayload.append('number', formData.number);
+    formPayload.append('nom', formData.nom);
+    formPayload.append('description', formData.description);
+    formPayload.append('user_id', user.id);
     
+    // Add file if selected
     if (selectedEvidenceFile) {
-      setUploadingEvidence(true);
-      const uploadedUrl = await api.uploadImage(selectedEvidenceFile);
-      if (uploadedUrl) {
-        evidenceImageUrl = uploadedUrl;
-      } else {
-        setError('فشل تحميل صورة الإثبات. يمكنك الإضافة بدون صورة.');
-        setLoading(false);
-        setUploadingEvidence(false);
-        return;
-      }
-      setUploadingEvidence(false);
+      formPayload.append('evidence_file', selectedEvidenceFile);
     }
     
     try {
-      const payload = {
-        number: formData.number,
-        nom: formData.nom,
-        description: formData.description,
-        evidence_image: evidenceImageUrl,
-        user_id: user.id
-      };
+      const response = await fetch(`${API_BASE_URL}/customers`, {
+        method: 'POST',
+        body: formPayload,
+        headers: {
+          'Accept': 'application/json',
+          // Don't set Content-Type - browser will set it automatically for FormData
+        },
+      });
+
+      const data = await response.json();
       
-      await api.addCustomer(payload);
+      if (!response.ok) {
+        throw new Error(data.message || 'فشل إضافة البلاغ');
+      }
       
       setSuccess('تم إضافة البلاغ بنجاح!');
       setFormData({ number: '', nom: user.name, description: '', evidence_image: '' });
@@ -2454,7 +2423,7 @@ const AddComment = () => {
     } finally {
       setLoading(false);
     }
-  }, [formData, user, selectedEvidenceFile, api.uploadImage, api.addCustomer, navigate]);
+  }, [formData, user, selectedEvidenceFile, navigate]);
 
   return (
     <div className="main">
@@ -2717,11 +2686,11 @@ const AddComment = () => {
               <div className="form-actions" style={{ display: 'flex', gap: '1rem' }}>
                 <button 
                   type="submit" 
-                  disabled={loading || uploadingEvidence}
+                  disabled={loading}
                   className="view-btn"
                   style={{ 
-                    background: loading || uploadingEvidence ? '#94a3b8' : 'linear-gradient(135deg, #4361ee, #7209b7)',
-                    cursor: loading || uploadingEvidence ? 'not-allowed' : 'pointer',
+                    background: loading ? '#94a3b8' : 'linear-gradient(135deg, #4361ee, #7209b7)',
+                    cursor: loading ? 'not-allowed' : 'pointer',
                     padding: '0.75rem 2rem',
                     border: 'none',
                     borderRadius: '8px',
@@ -2730,8 +2699,7 @@ const AddComment = () => {
                     fontWeight: '600'
                   }}
                 >
-                  {loading ? 'جاري الإضافة...' : 
-                   uploadingEvidence ? 'جاري تحميل الصورة...' : 'إضافة البلاغ'}
+                  {loading ? 'جاري الإضافة...' : 'إضافة البلاغ'}
                 </button>
                 <button 
                   type="button" 
